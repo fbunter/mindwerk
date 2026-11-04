@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindwerk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ccircle cx='16' cy='16' r='4.5' fill='white'/%3E%3Cpath d='M20 14 26 9M20 18l6 5M12 14 6 9M12 18l-6 5' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="btn icon" id="btn-sidebar" title="Dateien ein-/ausblenden" data-icon="menu"></button>
+    <div class="brand"><span class="logo"></span><span class="txt">Mindwerk</span></div>
+    <input id="doc-title" spellcheck="false" aria-label="Titel der Map">
+    <span class="sep"></span>
+    <button class="btn icon" id="btn-undo" title="Rückgängig (⌘Z)" data-icon="undo"></button>
+    <button class="btn icon" id="btn-redo" title="Wiederholen (⇧⌘Z)" data-icon="redo"></button>
+    <span class="sep"></span>
+    <button class="btn" id="btn-child" title="Unterthema (Tab)" data-icon="child"><span class="txt">Unterthema</span></button>
+    <button class="btn" id="btn-sibling" title="Gleichrangiges Thema (Enter)" data-icon="sibling"><span class="txt">Thema</span></button>
+    <button class="btn" id="btn-rel" title="Beziehungslinie zeichnen" data-icon="relation"><span class="txt">Beziehung</span></button>
+    <div class="spacer"></div>
+    <button class="btn" id="btn-search" title="Suchen (⌘F)" data-icon="search"></button>
+    <button class="btn" id="btn-outline" title="Gliederungsansicht" data-icon="outline"><span class="txt">Gliederung</span></button>
+    <button class="btn" id="btn-present" title="Präsentieren" data-icon="present"><span class="txt">Präsentieren</span></button>
+    <span class="sep"></span>
+    <button class="btn" id="btn-import" title="Importieren (.xmind, .md, .opml, .json)" data-icon="import"><span class="txt">Import</span></button>
+    <div class="dropdown" id="dd-export">
+      <button class="btn" data-dd data-icon="export"><span class="txt">Export</span></button>
+      <div class="menu">
+        <button data-export="png"><span>Bild</span><span class="k">PNG</span></button>
+        <button data-export="svg"><span>Vektorgrafik</span><span class="k">SVG</span></button>
+        <hr>
+        <button data-export="xmind"><span>XMind-Datei</span><span class="k">.xmind</span></button>
+        <button data-export="md"><span>Markdown</span><span class="k">.md</span></button>
+        <button data-export="opml"><span>OPML</span><span class="k">.opml</span></button>
+        <button data-export="json"><span>Mindwerk-Datei</span><span class="k">.json</span></button>
+      </div>
+    </div>
+    <button class="btn icon on" id="btn-panel" title="Format-Panel ein-/ausblenden" data-icon="panel"></button>
+  </header>
+
+  <aside id="sidebar">
+    <div class="sb-head"><button class="btn primary" id="btn-new" data-icon="plus">Neue Map</button></div>
+    <div class="sb-title">Zuletzt verwendet</div>
+    <ul id="doclist"></ul>
+    <div class="sb-foot">Gespeichert im Browser (lokal)</div>
+  </aside>
+
+  <main id="stage">
+    <div id="canvas" tabindex="-1">
+      <div id="world">
+        <svg id="lines"></svg>
+        <div id="nodes"></div>
+        <svg id="relations"></svg>
+      </div>
+    </div>
+    <div id="outline" hidden></div>
+
+    <div class="searchbar" id="search" hidden>
+      <span class="s-ic" data-icon="search"></span>
+      <input id="search-in" placeholder="In Map suchen…" spellcheck="false">
+      <span id="search-count"></span>
+      <button class="btn icon" id="search-prev" title="Vorheriger Treffer" data-icon="up"></button>
+      <button class="btn icon" id="search-next" title="Nächster Treffer" data-icon="down"></button>
+      <button class="btn icon" id="search-close" title="Schließen" data-icon="x"></button>
+    </div>
+
+    <div class="zoombar" id="zoombar">
+      <button class="btn icon" id="z-out" title="Verkleinern" data-icon="minus"></button>
+      <button class="btn" id="zoom-label" title="Auf 100 % setzen">100%</button>
+      <button class="btn icon" id="z-in" title="Vergrößern" data-icon="plus"></button>
+      <button class="btn icon" id="z-fit" title="Einpassen (⌘0)" data-icon="fit"></button>
+    </div>
+
+    <div id="present-bar">
+      <button class="btn icon" id="p-prev" title="Zurück" data-icon="left"></button>
+      <span id="present-counter"></span>
+      <button class="btn icon" id="p-next" title="Weiter" data-icon="right"></button>
+      <button class="btn icon" id="p-exit" title="Beenden (Esc)" data-icon="x"></button>
+    </div>
+  </main>
+
+  <aside id="panel"><div id="panel-body"></div></aside>
+</div>
+
+<dialog id="dlg-new">
+  <div class="dlg-head"><h2>Neue Map</h2><button class="btn icon" data-close data-icon="x" title="Schließen"></button></div>
+  <div class="tpl-grid" id="tpl-grid"></div>
+</dialog>
+
+<input type="file" id="file-input" accept=".xmind,.json,.md,.markdown,.txt,.opml,.xml" hidden>
+<div id="toast" role="status"></div>
+</body>
+</html>
